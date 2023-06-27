@@ -1,95 +1,106 @@
+"use client"
+
 import Image from 'next/image'
 import styles from './page.module.css'
-
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+import {AiOutlineSearch} from 'react-icons/ai'
+import getWeatherDetails from '@/api/weather';
+import WeatherDetailsList from './components/WeatherDetails/WeatherDetailsList';
+import { Weather } from '@/interfaces/weather';
 export default function Home() {
+
+
+
+  const [city, setcity] = useState("delhi");
+  const [value, setValue] = useState("");
+  const [data, setData] = useState<Weather | null>(null);
+
+  const getWeather = async (city: string) => {
+    const response = await getWeatherDetails(city);
+   
+    setData(response && response?.data);
+  };
+ 
+
+  useEffect(() => {
+    getWeather(city);
+  }, [city]);
+  
+const handleClick = ()=>{
+setcity(value)
+setValue(" ")
+}
+
+const handleInput = (e:any) => {
+setValue(e.target.value)
+  
+};
+
+
+
+
+const summer = {
+    backgroundImage: "url('./bg-summer.jpg')",
+    backgroundSize: 'cover',
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'center',
+
+  };
+const winter = {
+  backgroundImage: "url('./bg-winter.jpg')",
+  backgroundSize: "cover",
+  backgroundRepeat: "no-repeat",
+  backgroundPosition: "center",
+  
+};
+
+
+
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
+    <main>
+      <div
+        className={styles.mainWrapper}
+        style={
+          data && data?.main?.temp-274 > 30
+            ? summer
+            : winter
+        }
+      >
+        <div className={styles.inputWrapper}>
+          <div className={styles.input}>
+            <input
+              type="text"
+              placeholder="Search City"
+              onChange={handleInput}
+              value={value}
             />
-          </a>
+            <button onClick={handleClick}>
+              <AiOutlineSearch />{" "}
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore the Next.js 13 playground.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+        <div className={styles.cityWrapper}>
+          <div className={styles.city}>
+            <h1>
+              {" "}
+              {data?.name} ,{data?.sys.country}{" "}
+            </h1>
+            {data && (
+              <img
+                src={`https://openweathermap.org/img/wn/${data?.weather[0].icon}@2x.png`}
+                alt=""
+              />
+            )}
+            {data && <p>{data?.weather[0].description}</p>}
+          </div>
+          <div className={styles.temp}>
+            {data && <h1>{(data?.main?.temp - 273.15).toFixed()} °C</h1>}
+          </div>
+        </div>
+        <WeatherDetailsList data={data?.main} wind={data?.wind} />
       </div>
     </main>
-  )
+  );
 }
